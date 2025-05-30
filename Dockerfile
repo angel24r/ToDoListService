@@ -7,7 +7,9 @@ RUN apt-get update && apt-get install -y \
 
 RUN a2enmod rewrite
 
-COPY . /var/www/html
+WORKDIR /var/www
+
+COPY . .
 
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
@@ -15,7 +17,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN composer install --no-dev --optimize-autoloader
 
-EXPOSE 80
+EXPOSE 9000
 
 CMD ["sh", "-c", "php artisan migrate --force && apache2-foreground"]
 

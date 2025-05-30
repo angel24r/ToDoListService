@@ -24,3 +24,13 @@ Route::post('/run-migrations', function (Request $request) {
         'output' => Artisan::output(),
     ]);
 });
+
+Route::get('/storage/attachments/{filename}', function ($filename) {
+    $path = storage_path('app/public/attachments/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($path);
+});

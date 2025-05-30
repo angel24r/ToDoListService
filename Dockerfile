@@ -1,24 +1,31 @@
-FROM php:8.2-apache
+# Usa la imagen oficial PHP 8.2 con FPM
+FROM php:8.2-fpm
 
 RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpng-dev \
+    libjpeg-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    curl \
+    git \
+    libzip-dev \
     libpq-dev \
-    zip unzip git \
-    && docker-php-ext-install pdo pdo_pgsql pgsql
+    && docker-php-ext-install pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd zip
 
-RUN a2enmod rewrite
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
 COPY . .
 
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
 RUN composer install --no-dev --optimize-autoloader
+
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 755 storage bootstrap/cache
 
 EXPOSE 9000
 
-CMD ["sh", "-c", "php artisan migrate --force && apache2-foreground"]
-
-
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
